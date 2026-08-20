@@ -1,12 +1,18 @@
+import java.util.Scanner;
+
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-0 covers the bare skeleton: littleDaisy shows its banner, says
- * hello and immediately signs off. Reading user input comes in Level-1.
+ * <p>Level-1 adds a conversation loop: littleDaisy repeats back whatever the
+ * user types, and stops when the user types {@code bye}. Remembering what was
+ * typed comes in Level-2.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
     private static final String BOT_NAME = "littleDaisy";
+
+    /** Word the user types to end the conversation. */
+    private static final String COMMAND_BYE = "bye";
 
     /** Ruled line that opens and closes every block of output. */
     private static final String DIVIDER =
@@ -33,6 +39,7 @@ public class LittleDaisy {
      */
     public static void main(String[] args) {
         greet();
+        chat();
         sayBye();
     }
 
@@ -43,6 +50,26 @@ public class LittleDaisy {
         }
         System.out.println();
         say("Hello! I'm " + BOT_NAME + ".", "What can I do for you?");
+    }
+
+    /**
+     * Reads one line at a time and echoes it back, until the user types
+     * {@code bye}.
+     *
+     * <p>The loop is guarded by {@code hasNextLine()} rather than looping
+     * forever, so that input which ends without a "bye" -- a piped file, or
+     * Ctrl-D -- stops the loop instead of throwing NoSuchElementException.
+     */
+    private static void chat() {
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNextLine()) {
+            String input = scanner.nextLine().trim();
+            if (input.equals(COMMAND_BYE)) {
+                break;
+            }
+            say(input);
+        }
+        scanner.close();
     }
 
     /** Shows the sign-off message printed just before the program ends. */
