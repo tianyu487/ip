@@ -3,10 +3,10 @@ import java.util.Scanner;
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-4 tells three kinds of task apart: {@code todo}, {@code deadline}
- * and {@code event}. They are all stored in the same {@code Task[]}, and each
- * renders itself, so the code that prints them never asks which kind it has.
- * Reacting to bad input comes in Level-5.
+ * <p>Level-5 makes littleDaisy hard to crash: input the chatbot cannot act
+ * on -- an unknown command, an empty description, a task number that does not
+ * exist -- is answered with a friendly complaint instead of a stack trace,
+ * and the conversation carries on. Deleting tasks comes in Level-6.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
@@ -57,6 +57,13 @@ public class LittleDaisy {
     /** Line confirming that a task was added. */
     private static final String MESSAGE_ADDED = "Got it. I've added this task:";
 
+    /** Prefix put in front of every complaint about bad input. */
+    private static final String MESSAGE_OOPS = "OOPS!!! ";
+
+    /** Complaint for a line whose first word is no known command. */
+    private static final String ERROR_UNKNOWN_COMMAND =
+            "I'm sorry, but I don't know what that means :-(";
+
     /** Ruled line that opens and closes every block of output. */
     private static final String DIVIDER =
             "    ____________________________________________________________";
@@ -101,9 +108,11 @@ public class LittleDaisy {
      *
      * <p>The first word of the line decides what happens: {@code list} shows
      * the tasks stored so far, {@code mark} and {@code unmark} change whether
-     * one of them is done, and any other line is stored as a new task. Tasks
-     * live only for the length of one conversation, since nothing is written
-     * to disk yet.
+     * one of them is done, and {@code todo}, {@code deadline} and {@code
+     * event} store a new task. Anything else is an error, as is a command
+     * whose arguments cannot be understood; errors are announced and the
+     * conversation continues. Tasks live only for the length of one
+     * conversation, since nothing is written to disk yet.
      *
      * <p>The loop is guarded by {@code hasNextLine()} rather than looping
      * forever, so that input which ends without a "bye" -- a piped file, or
@@ -123,38 +132,107 @@ public class LittleDaisy {
 
             if (command.equals(COMMAND_BYE)) {
                 break;
-            } else if (command.equals(COMMAND_LIST)) {
-                showList(tasks, taskCount);
-            } else if (command.equals(COMMAND_MARK)) {
-                int index = Integer.parseInt(parts[1]) - 1;
-                tasks[index].markAsDone();
-                say(MESSAGE_MARKED, "  " + tasks[index]);
-            } else if (command.equals(COMMAND_UNMARK)) {
-                int index = Integer.parseInt(parts[1]) - 1;
-                tasks[index].markAsNotDone();
-                say(MESSAGE_UNMARKED, "  " + tasks[index]);
-            } else if (command.equals(COMMAND_TODO)) {
-                tasks[taskCount] = new Todo(argumentsOf(input));
-                taskCount++;
-                sayAdded(tasks[taskCount - 1], taskCount);
-            } else if (command.equals(COMMAND_DEADLINE)) {
-                String[] pieces = argumentsOf(input).split(OPTION_BY);
-                tasks[taskCount] = new Deadline(pieces[0], pieces[1]);
-                taskCount++;
-                sayAdded(tasks[taskCount - 1], taskCount);
-            } else if (command.equals(COMMAND_EVENT)) {
-                String[] pieces = argumentsOf(input).split(OPTION_FROM);
-                String[] times = pieces[1].split(OPTION_TO);
-                tasks[taskCount] = new Event(pieces[0], times[0], times[1]);
-                taskCount++;
-                sayAdded(tasks[taskCount - 1], taskCount);
-            } else {
-                tasks[taskCount] = new Task(input);
-                taskCount++;
-                say("added: " + input);
+            }
+
+            // Everything below can go wrong, so it runs under one try. The
+            // moment any step throws, the rest of the command is skipped,
+            // the complaint is shown, and the loop moves to the next line.
+            try {
+                if (command.equals(COMMAND_LIST)) {
+                    showList(tasks, taskCount);
+                } else if (command.equals(COMMAND_MARK)) {
+                    int index = parseTaskNumber(parts, taskCount) - 1;
+                    tasks[index].markAsDone();
+                    say(MESSAGE_MARKED, "  " + tasks[index]);
+                } else if (command.equals(COMMAND_UNMARK)) {
+                    int index = parseTaskNumber(parts, taskCount) - 1;
+                    tasks[index].markAsNotDone();
+                    say(MESSAGE_UNMARKED, "  " + tasks[index]);
+                } else if (command.equals(COMMAND_TODO)) {
+                    tasks[taskCount] = new Todo(requireDescription(input, command));
+                    taskCount++;
+                    sayAdded(tasks[taskCount - 1], taskCount);
+                } else if (command.equals(COMMAND_DEADLINE)) {
+                    String[] pieces = requireDescription(input, command).split(OPTION_BY);
+                    if (pieces.length < 2) {
+                        throw new LittleDaisyException(
+                                "A deadline needs \"" + OPTION_BY.trim() + " <time>\" after the description.");
+                    }
+                    tasks[taskCount] = new Deadline(pieces[0], pieces[1]);
+                    taskCount++;
+                    sayAdded(tasks[taskCount - 1], taskCount);
+                } else if (command.equals(COMMAND_EVENT)) {
+                    String[] pieces = requireDescription(input, command).split(OPTION_FROM);
+                    if (pieces.length < 2) {
+                        throw new LittleDaisyException(
+                                "An event needs \"" + OPTION_FROM.trim() + " <start>\" after the description.");
+                    }
+                    String[] times = pieces[1].split(OPTION_TO);
+                    if (times.length < 2) {
+                        throw new LittleDaisyException(
+                                "An event needs \"" + OPTION_TO.trim() + " <end>\" after the start time.");
+                    }
+                    tasks[taskCount] = new Event(pieces[0], times[0], times[1]);
+                    taskCount++;
+                    sayAdded(tasks[taskCount - 1], taskCount);
+                } else {
+                    throw new LittleDaisyException(ERROR_UNKNOWN_COMMAND);
+                }
+            } catch (LittleDaisyException e) {
+                say(MESSAGE_OOPS + e.getMessage());
             }
         }
         scanner.close();
+    }
+
+    /**
+     * Returns the description part of an add-task command, refusing to accept
+     * an empty one.
+     *
+     * <p>Worked example of throwing: the caller does not need to know that an
+     * empty description is reported via an exception -- it just calls this and
+     * carries on with a guaranteed-usable description.
+     *
+     * @param input the whole line the user typed
+     * @param command the command word, used to phrase the complaint
+     * @return everything after the command word
+     * @throws LittleDaisyException if there is nothing after the command word
+     */
+    private static String requireDescription(String input, String command)
+            throws LittleDaisyException {
+        if (input.equals(command)) {
+            // The line IS the bare command word: nothing follows it.
+            throw new LittleDaisyException(
+                    "The description of a " + command + " cannot be empty.");
+        }
+        return argumentsOf(input);
+    }
+
+    /**
+     * Reads the task number named in a mark or unmark command, refusing
+     * numbers that do not point at a stored task.
+     *
+     * @param parts the user's line, already split on spaces
+     * @param taskCount number of tasks stored so far
+     * @return the number the user typed, counted from 1
+     * @throws LittleDaisyException if the number is missing, is not a number,
+     *     or does not point at a stored task
+     */
+    private static int parseTaskNumber(String[] parts, int taskCount)
+            throws LittleDaisyException {
+        if (parts.length < 2) {
+            throw new LittleDaisyException("Please tell me which task number.");
+        }
+        int number;
+        try {
+            number = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            throw new LittleDaisyException("A task number should be a number.");
+        }
+        if (number < 1 || number > taskCount) {
+            throw new LittleDaisyException("Task " + number + " does not exist.");
+        }
+        return number;
     }
 
     /**
