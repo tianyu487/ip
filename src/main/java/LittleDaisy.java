@@ -3,9 +3,9 @@ import java.util.Scanner;
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-2 gives littleDaisy a memory: any line that is not a command is
- * stored as a task, {@code list} shows the tasks stored so far, and
- * {@code bye} ends the conversation. Marking a task as done comes in Level-3.
+ * <p>Level-3 lets the user tick tasks off: each task is now a {@link Task}
+ * object that remembers whether it is done, and {@code mark} / {@code unmark}
+ * flip that flag. Telling different kinds of task apart comes in Level-4.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
@@ -14,8 +14,26 @@ public class LittleDaisy {
     /** Word the user types to end the conversation. */
     private static final String COMMAND_BYE = "bye";
 
-    private static final int MAX_TASKS = 100;
+    /** Word the user types to see every stored task. */
     private static final String COMMAND_LIST = "list";
+
+    /** Word the user types to tick a task off. */
+    private static final String COMMAND_MARK = "mark";
+
+    /** Word the user types to undo a {@code mark}. */
+    private static final String COMMAND_UNMARK = "unmark";
+
+    /** Largest number of tasks one conversation can hold. */
+    private static final int MAX_TASKS = 100;
+
+    /** Line printed above the task list. */
+    private static final String LIST_HEADER = "Here are the tasks in your list:";
+
+    /** Line confirming a {@code mark}. */
+    private static final String MESSAGE_MARKED = "Nice! I've marked this task as done:";
+
+    /** Line confirming an {@code unmark}. */
+    private static final String MESSAGE_UNMARKED = "OK, I've marked this task as not done yet:";
 
     /** Ruled line that opens and closes every block of output. */
     private static final String DIVIDER =
@@ -59,26 +77,42 @@ public class LittleDaisy {
      * Reads one line at a time and acts on it, until the user types
      * {@code bye}.
      *
-     * <p>A line of {@code list} shows the tasks stored so far; any other line
-     * is stored as a new task. Tasks live only for the length of one
-     * conversation, since nothing is written to disk yet.
+     * <p>The first word of the line decides what happens: {@code list} shows
+     * the tasks stored so far, {@code mark} and {@code unmark} change whether
+     * one of them is done, and any other line is stored as a new task. Tasks
+     * live only for the length of one conversation, since nothing is written
+     * to disk yet.
      *
      * <p>The loop is guarded by {@code hasNextLine()} rather than looping
      * forever, so that input which ends without a "bye" -- a piped file, or
      * Ctrl-D -- stops the loop instead of throwing NoSuchElementException.
      */
     private static void chat() {
-        String[] tasks = new String[MAX_TASKS];
+        Task[] tasks = new Task[MAX_TASKS];
         int taskCount = 0;
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine().trim();
-            if (input.equals(COMMAND_BYE)) {
+
+            // Commands now carry arguments ("mark 2"), so the whole line no
+            // longer matches a command word. Split it and look at word one.
+            String[] parts = input.split(" ");
+            String command = parts[0];
+
+            if (command.equals(COMMAND_BYE)) {
                 break;
-            } else if (input.equals(COMMAND_LIST)) {
+            } else if (command.equals(COMMAND_LIST)) {
                 showList(tasks, taskCount);
+            } else if (command.equals(COMMAND_MARK)) {
+                int index = Integer.parseInt(parts[1]) - 1;
+                tasks[index].markAsDone();
+                say(MESSAGE_MARKED, "  " + tasks[index]);
+            } else if (command.equals(COMMAND_UNMARK)) {
+                int index = Integer.parseInt(parts[1]) - 1;
+                tasks[index].markAsNotDone();
+                say(MESSAGE_UNMARKED, "  " + tasks[index]);
             } else {
-                tasks[taskCount] = input;
+                tasks[taskCount] = new Task(input);
                 taskCount++;
                 say("added: " + input);
             }
@@ -87,19 +121,21 @@ public class LittleDaisy {
     }
 
     /**
-     * Shows the stored tasks as a numbered list, oldest first.
+     * Shows the stored tasks as a numbered list, oldest first, under a header.
      *
      * <p>The numbering shown to the user starts at 1 while the array index
-     * starts at 0, hence the {@code i + 1}.
+     * starts at 0. The header takes up {@code lines[0]}, so task {@code i}
+     * lands one slot further along again.
      *
      * @param tasks array holding the tasks, of which only the first
      *     {@code taskCount} slots are filled
      * @param taskCount number of tasks stored so far
      */
-    private static void showList(String[] tasks, int taskCount) {
-        String[] lines = new String[taskCount];
+    private static void showList(Task[] tasks, int taskCount) {
+        String[] lines = new String[taskCount + 1];
+        lines[0] = LIST_HEADER;
         for (int i = 0; i < taskCount; i++) {
-            lines[i] = (i + 1) + ". " + tasks[i];
+            lines[i + 1] = (i + 1) + "." + tasks[i];
         }
         say(lines);
     }
