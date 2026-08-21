@@ -1,12 +1,13 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-5 makes littleDaisy hard to crash: input the chatbot cannot act
- * on -- an unknown command, an empty description, a task number that does not
- * exist -- is answered with a friendly complaint instead of a stack trace,
- * and the conversation carries on. Deleting tasks comes in Level-6.
+ * <p>Level-6 lets the user delete tasks, and swaps the fixed-size array for
+ * an {@code ArrayList}: removing an element from the middle of a plain array
+ * would have meant shifting everything after it by hand, which the list does
+ * for us.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
@@ -33,6 +34,9 @@ public class LittleDaisy {
     /** Word the user types to add a task spanning two times. */
     private static final String COMMAND_EVENT = "event";
 
+    /** Word the user types to remove a task from the list. */
+    private static final String COMMAND_DELETE = "delete";
+
     /** Separator introducing the due time of a {@code deadline}. */
     private static final String OPTION_BY = " /by ";
 
@@ -41,9 +45,6 @@ public class LittleDaisy {
 
     /** Separator introducing the end time of an {@code event}. */
     private static final String OPTION_TO = " /to ";
-
-    /** Largest number of tasks one conversation can hold. */
-    private static final int MAX_TASKS = 100;
 
     /** Line printed above the task list. */
     private static final String LIST_HEADER = "Here are the tasks in your list:";
@@ -56,6 +57,9 @@ public class LittleDaisy {
 
     /** Line confirming that a task was added. */
     private static final String MESSAGE_ADDED = "Got it. I've added this task:";
+
+    /** Line confirming that a task was removed. */
+    private static final String MESSAGE_DELETED = "Noted. I've removed this task:";
 
     /** Prefix put in front of every complaint about bad input. */
     private static final String MESSAGE_OOPS = "OOPS!!! ";
@@ -119,8 +123,7 @@ public class LittleDaisy {
      * Ctrl-D -- stops the loop instead of throwing NoSuchElementException.
      */
     private static void chat() {
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine().trim();
@@ -139,28 +142,30 @@ public class LittleDaisy {
             // the complaint is shown, and the loop moves to the next line.
             try {
                 if (command.equals(COMMAND_LIST)) {
-                    showList(tasks, taskCount);
+                    showList(tasks);
                 } else if (command.equals(COMMAND_MARK)) {
-                    int index = parseTaskNumber(parts, taskCount) - 1;
-                    tasks[index].markAsDone();
-                    say(MESSAGE_MARKED, "  " + tasks[index]);
+                    int index = parseTaskNumber(parts, tasks.size()) - 1;
+                    tasks.get(index).markAsDone();
+                    say(MESSAGE_MARKED, "  " + tasks.get(index));
                 } else if (command.equals(COMMAND_UNMARK)) {
-                    int index = parseTaskNumber(parts, taskCount) - 1;
-                    tasks[index].markAsNotDone();
-                    say(MESSAGE_UNMARKED, "  " + tasks[index]);
+                    int index = parseTaskNumber(parts, tasks.size()) - 1;
+                    tasks.get(index).markAsNotDone();
+                    say(MESSAGE_UNMARKED, "  " + tasks.get(index));
+                } else if (command.equals(COMMAND_DELETE)) {
+                    int index = parseTaskNumber(parts, tasks.size()) - 1;
+                    Task removed = tasks.remove(index);
+                    sayTaskChange(MESSAGE_DELETED, removed, tasks.size());
                 } else if (command.equals(COMMAND_TODO)) {
-                    tasks[taskCount] = new Todo(requireDescription(input, command));
-                    taskCount++;
-                    sayAdded(tasks[taskCount - 1], taskCount);
+                    tasks.add(new Todo(requireDescription(input, command)));
+                    sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                 } else if (command.equals(COMMAND_DEADLINE)) {
                     String[] pieces = requireDescription(input, command).split(OPTION_BY);
                     if (pieces.length < 2) {
                         throw new LittleDaisyException(
                                 "A deadline needs \"" + OPTION_BY.trim() + " <time>\" after the description.");
                     }
-                    tasks[taskCount] = new Deadline(pieces[0], pieces[1]);
-                    taskCount++;
-                    sayAdded(tasks[taskCount - 1], taskCount);
+                    tasks.add(new Deadline(pieces[0], pieces[1]));
+                    sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                 } else if (command.equals(COMMAND_EVENT)) {
                     String[] pieces = requireDescription(input, command).split(OPTION_FROM);
                     if (pieces.length < 2) {
@@ -172,9 +177,8 @@ public class LittleDaisy {
                         throw new LittleDaisyException(
                                 "An event needs \"" + OPTION_TO.trim() + " <end>\" after the start time.");
                     }
-                    tasks[taskCount] = new Event(pieces[0], times[0], times[1]);
-                    taskCount++;
-                    sayAdded(tasks[taskCount - 1], taskCount);
+                    tasks.add(new Event(pieces[0], times[0], times[1]));
+                    sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                 } else {
                     throw new LittleDaisyException(ERROR_UNKNOWN_COMMAND);
                 }
@@ -238,19 +242,17 @@ public class LittleDaisy {
     /**
      * Shows the stored tasks as a numbered list, oldest first, under a header.
      *
-     * <p>The numbering shown to the user starts at 1 while the array index
+     * <p>The numbering shown to the user starts at 1 while the list index
      * starts at 0. The header takes up {@code lines[0]}, so task {@code i}
      * lands one slot further along again.
      *
-     * @param tasks array holding the tasks, of which only the first
-     *     {@code taskCount} slots are filled
-     * @param taskCount number of tasks stored so far
+     * @param tasks the tasks stored so far
      */
-    private static void showList(Task[] tasks, int taskCount) {
-        String[] lines = new String[taskCount + 1];
+    private static void showList(ArrayList<Task> tasks) {
+        String[] lines = new String[tasks.size() + 1];
         lines[0] = LIST_HEADER;
-        for (int i = 0; i < taskCount; i++) {
-            lines[i + 1] = (i + 1) + "." + tasks[i];
+        for (int i = 0; i < tasks.size(); i++) {
+            lines[i + 1] = (i + 1) + "." + tasks.get(i);
         }
         say(lines);
     }
@@ -270,13 +272,15 @@ public class LittleDaisy {
     }
 
     /**
-     * Confirms that a task was added, and says how long the list now is.
+     * Confirms that a task was added or removed, and says how long the list
+     * now is.
      *
-     * @param task the task that was just added
-     * @param taskCount number of tasks stored after the addition
+     * @param message line announcing what happened, e.g. {@link #MESSAGE_ADDED}
+     * @param task the task that was added or removed
+     * @param taskCount number of tasks stored after the change
      */
-    private static void sayAdded(Task task, int taskCount) {
-        say(MESSAGE_ADDED,
+    private static void sayTaskChange(String message, Task task, int taskCount) {
+        say(message,
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
     }
