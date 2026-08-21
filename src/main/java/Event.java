@@ -1,0 +1,35 @@
+/**
+ * A task that runs between two stated points in time, e.g.
+ * {@code project meeting (from: Mon 2pm to: 4pm)}.
+ */
+public class Event extends Task {
+    /** When the event starts, as the user typed it. */
+    protected String from;
+
+    /** When the event ends, as the user typed it. */
+    protected String to;
+
+    /**
+     * Creates an event that is not done yet.
+     *
+     * @param description what the event is about
+     * @param from when it starts, as the user typed it
+     * @param to when it ends, as the user typed it
+     */
+    public Event(String description, String from, String to) {
+        super(description);
+        this.from = from;
+        this.to = to;
+    }
+
+    /**
+     * Returns this event with its type icon and time span, e.g.
+     * {@code [E][ ] project meeting (from: Mon 2pm to: 4pm)}.
+     *
+     * @return the type icon, the inherited rendering, then the time span
+     */
+    @Override
+    public String toString() {
+        return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
+    }
+}

@@ -3,9 +3,10 @@ import java.util.Scanner;
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-3 lets the user tick tasks off: each task is now a {@link Task}
- * object that remembers whether it is done, and {@code mark} / {@code unmark}
- * flip that flag. Telling different kinds of task apart comes in Level-4.
+ * <p>Level-4 tells three kinds of task apart: {@code todo}, {@code deadline}
+ * and {@code event}. They are all stored in the same {@code Task[]}, and each
+ * renders itself, so the code that prints them never asks which kind it has.
+ * Reacting to bad input comes in Level-5.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
@@ -23,6 +24,24 @@ public class LittleDaisy {
     /** Word the user types to undo a {@code mark}. */
     private static final String COMMAND_UNMARK = "unmark";
 
+    /** Word the user types to add a task with no date attached. */
+    private static final String COMMAND_TODO = "todo";
+
+    /** Word the user types to add a task due by some time. */
+    private static final String COMMAND_DEADLINE = "deadline";
+
+    /** Word the user types to add a task spanning two times. */
+    private static final String COMMAND_EVENT = "event";
+
+    /** Separator introducing the due time of a {@code deadline}. */
+    private static final String OPTION_BY = " /by ";
+
+    /** Separator introducing the start time of an {@code event}. */
+    private static final String OPTION_FROM = " /from ";
+
+    /** Separator introducing the end time of an {@code event}. */
+    private static final String OPTION_TO = " /to ";
+
     /** Largest number of tasks one conversation can hold. */
     private static final int MAX_TASKS = 100;
 
@@ -34,6 +53,9 @@ public class LittleDaisy {
 
     /** Line confirming an {@code unmark}. */
     private static final String MESSAGE_UNMARKED = "OK, I've marked this task as not done yet:";
+
+    /** Line confirming that a task was added. */
+    private static final String MESSAGE_ADDED = "Got it. I've added this task:";
 
     /** Ruled line that opens and closes every block of output. */
     private static final String DIVIDER =
@@ -111,6 +133,21 @@ public class LittleDaisy {
                 int index = Integer.parseInt(parts[1]) - 1;
                 tasks[index].markAsNotDone();
                 say(MESSAGE_UNMARKED, "  " + tasks[index]);
+            } else if (command.equals(COMMAND_TODO)) {
+                tasks[taskCount] = new Todo(argumentsOf(input));
+                taskCount++;
+                sayAdded(tasks[taskCount - 1], taskCount);
+            } else if (command.equals(COMMAND_DEADLINE)) {
+                String[] pieces = argumentsOf(input).split(OPTION_BY);
+                tasks[taskCount] = new Deadline(pieces[0], pieces[1]);
+                taskCount++;
+                sayAdded(tasks[taskCount - 1], taskCount);
+            } else if (command.equals(COMMAND_EVENT)) {
+                String[] pieces = argumentsOf(input).split(OPTION_FROM);
+                String[] times = pieces[1].split(OPTION_TO);
+                tasks[taskCount] = new Event(pieces[0], times[0], times[1]);
+                taskCount++;
+                sayAdded(tasks[taskCount - 1], taskCount);
             } else {
                 tasks[taskCount] = new Task(input);
                 taskCount++;
@@ -138,6 +175,32 @@ public class LittleDaisy {
             lines[i + 1] = (i + 1) + "." + tasks[i];
         }
         say(lines);
+    }
+
+    /**
+     * Returns everything on a line after its first word.
+     *
+     * <p>{@code split(" ")} is no good here, because a description may itself
+     * contain spaces: {@code todo borrow book} has to yield {@code borrow
+     * book}, not just {@code borrow}.
+     *
+     * @param input the whole line the user typed
+     * @return the line with its first word and the space after it removed
+     */
+    private static String argumentsOf(String input) {
+        return input.substring(input.indexOf(' ') + 1);
+    }
+
+    /**
+     * Confirms that a task was added, and says how long the list now is.
+     *
+     * @param task the task that was just added
+     * @param taskCount number of tasks stored after the addition
+     */
+    private static void sayAdded(Task task, int taskCount) {
+        say(MESSAGE_ADDED,
+                "  " + task,
+                "Now you have " + taskCount + " tasks in the list.");
     }
 
     /** Shows the sign-off message printed just before the program ends. */
