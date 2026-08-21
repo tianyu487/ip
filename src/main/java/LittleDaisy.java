@@ -4,38 +4,14 @@ import java.util.Scanner;
 /**
  * A small command line chatbot called littleDaisy.
  *
- * <p>Level-6 lets the user delete tasks, and swaps the fixed-size array for
- * an {@code ArrayList}: removing an element from the middle of a plain array
- * would have meant shifting everything after it by hand, which the list does
- * for us.
+ * <p>The command words now live in the {@link Command} enum, and the command
+ * loop dispatches with a switch over its constants: the compiler can then
+ * see, in a way it never could with a chain of string comparisons, that every
+ * command is handled somewhere.
  */
 public class LittleDaisy {
     /** Name the chatbot introduces itself with. */
     private static final String BOT_NAME = "littleDaisy";
-
-    /** Word the user types to end the conversation. */
-    private static final String COMMAND_BYE = "bye";
-
-    /** Word the user types to see every stored task. */
-    private static final String COMMAND_LIST = "list";
-
-    /** Word the user types to tick a task off. */
-    private static final String COMMAND_MARK = "mark";
-
-    /** Word the user types to undo a {@code mark}. */
-    private static final String COMMAND_UNMARK = "unmark";
-
-    /** Word the user types to add a task with no date attached. */
-    private static final String COMMAND_TODO = "todo";
-
-    /** Word the user types to add a task due by some time. */
-    private static final String COMMAND_DEADLINE = "deadline";
-
-    /** Word the user types to add a task spanning two times. */
-    private static final String COMMAND_EVENT = "event";
-
-    /** Word the user types to remove a task from the list. */
-    private static final String COMMAND_DELETE = "delete";
 
     /** Separator introducing the due time of a {@code deadline}. */
     private static final String OPTION_BY = " /by ";
@@ -131,9 +107,9 @@ public class LittleDaisy {
             // Commands now carry arguments ("mark 2"), so the whole line no
             // longer matches a command word. Split it and look at word one.
             String[] parts = input.split(" ");
-            String command = parts[0];
+            Command command = Command.of(parts[0]);
 
-            if (command.equals(COMMAND_BYE)) {
+            if (command == Command.BYE) {
                 break;
             }
 
@@ -141,33 +117,44 @@ public class LittleDaisy {
             // moment any step throws, the rest of the command is skipped,
             // the complaint is shown, and the loop moves to the next line.
             try {
-                if (command.equals(COMMAND_LIST)) {
+                switch (command) {
+                case LIST:
                     showList(tasks);
-                } else if (command.equals(COMMAND_MARK)) {
+                    break;
+                case MARK: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     tasks.get(index).markAsDone();
                     say(MESSAGE_MARKED, "  " + tasks.get(index));
-                } else if (command.equals(COMMAND_UNMARK)) {
+                    break;
+                }
+                case UNMARK: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     tasks.get(index).markAsNotDone();
                     say(MESSAGE_UNMARKED, "  " + tasks.get(index));
-                } else if (command.equals(COMMAND_DELETE)) {
+                    break;
+                }
+                case DELETE: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     Task removed = tasks.remove(index);
                     sayTaskChange(MESSAGE_DELETED, removed, tasks.size());
-                } else if (command.equals(COMMAND_TODO)) {
-                    tasks.add(new Todo(requireDescription(input, command)));
+                    break;
+                }
+                case TODO:
+                    tasks.add(new Todo(requireDescription(input, parts[0])));
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
-                } else if (command.equals(COMMAND_DEADLINE)) {
-                    String[] pieces = requireDescription(input, command).split(OPTION_BY);
+                    break;
+                case DEADLINE: {
+                    String[] pieces = requireDescription(input, parts[0]).split(OPTION_BY);
                     if (pieces.length < 2) {
                         throw new LittleDaisyException(
                                 "A deadline needs \"" + OPTION_BY.trim() + " <time>\" after the description.");
                     }
                     tasks.add(new Deadline(pieces[0], pieces[1]));
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
-                } else if (command.equals(COMMAND_EVENT)) {
-                    String[] pieces = requireDescription(input, command).split(OPTION_FROM);
+                    break;
+                }
+                case EVENT: {
+                    String[] pieces = requireDescription(input, parts[0]).split(OPTION_FROM);
                     if (pieces.length < 2) {
                         throw new LittleDaisyException(
                                 "An event needs \"" + OPTION_FROM.trim() + " <start>\" after the description.");
@@ -179,7 +166,9 @@ public class LittleDaisy {
                     }
                     tasks.add(new Event(pieces[0], times[0], times[1]));
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
-                } else {
+                    break;
+                }
+                default:
                     throw new LittleDaisyException(ERROR_UNKNOWN_COMMAND);
                 }
             } catch (LittleDaisyException e) {
