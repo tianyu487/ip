@@ -22,6 +22,16 @@ public class Event extends Task {
         this.to = to;
     }
 
+    /** Returns the user-entered event start. */
+    public String getFrom() {
+        return from;
+    }
+
+    /** Returns the user-entered event end. */
+    public String getTo() {
+        return to;
+    }
+
     /**
      * Returns this event with its type icon and time span, e.g.
      * {@code [E][ ] project meeting (from: Mon 2pm to: 4pm)}.

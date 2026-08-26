@@ -48,6 +48,11 @@ public class Deadline extends Task {
         }
     }
 
+    /** Returns the calendar date by which this task is due. */
+    public LocalDate getBy() {
+        return by;
+    }
+
     /**
      * Returns this deadline with its type icon and due time, e.g.
      * {@code [D][ ] return book (by: Sunday)}.
