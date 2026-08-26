@@ -1,4 +1,9 @@
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -21,6 +26,9 @@ public class LittleDaisy {
 
     /** Separator introducing the end time of an {@code event}. */
     private static final String OPTION_TO = " /to ";
+
+    /** Relative, platform-independent location of the saved task list. */
+    private static final Path DATA_FILE = Path.of("data", "littleDaisy.txt");
 
     /** Line printed above the task list. */
     private static final String LIST_HEADER = "Here are the tasks in your list:";
@@ -92,14 +100,21 @@ public class LittleDaisy {
      * event} store a new task. Anything else is an error, as is a command
      * whose arguments cannot be understood; errors are announced and the
      * conversation continues. Tasks live only for the length of one
-     * conversation, since nothing is written to disk yet.
+     * conversation and are saved after every change so that the next run can
+     * restore them.
      *
      * <p>The loop is guarded by {@code hasNextLine()} rather than looping
      * forever, so that input which ends without a "bye" -- a piped file, or
      * Ctrl-D -- stops the loop instead of throwing NoSuchElementException.
      */
     private static void chat() {
-        ArrayList<Task> tasks = new ArrayList<>();
+        ArrayList<Task> tasks;
+        try {
+            tasks = loadTasks();
+        } catch (LittleDaisyException e) {
+            say(MESSAGE_OOPS + e.getMessage());
+            tasks = new ArrayList<>();
+        }
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine().trim();
@@ -124,23 +139,27 @@ public class LittleDaisy {
                 case MARK: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     tasks.get(index).markAsDone();
+                    saveTasks(tasks);
                     say(MESSAGE_MARKED, "  " + tasks.get(index));
                     break;
                 }
                 case UNMARK: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     tasks.get(index).markAsNotDone();
+                    saveTasks(tasks);
                     say(MESSAGE_UNMARKED, "  " + tasks.get(index));
                     break;
                 }
                 case DELETE: {
                     int index = parseTaskNumber(parts, tasks.size()) - 1;
                     Task removed = tasks.remove(index);
+                    saveTasks(tasks);
                     sayTaskChange(MESSAGE_DELETED, removed, tasks.size());
                     break;
                 }
                 case TODO:
                     tasks.add(new Todo(requireDescription(input, parts[0])));
+                    saveTasks(tasks);
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                     break;
                 case DEADLINE: {
@@ -150,6 +169,7 @@ public class LittleDaisy {
                                 "A deadline needs \"" + OPTION_BY.trim() + " <time>\" after the description.");
                     }
                     tasks.add(new Deadline(pieces[0], pieces[1]));
+                    saveTasks(tasks);
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                     break;
                 }
@@ -165,6 +185,7 @@ public class LittleDaisy {
                                 "An event needs \"" + OPTION_TO.trim() + " <end>\" after the start time.");
                     }
                     tasks.add(new Event(pieces[0], times[0], times[1]));
+                    saveTasks(tasks);
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                     break;
                 }
@@ -176,6 +197,155 @@ public class LittleDaisy {
             }
         }
         scanner.close();
+    }
+
+    /**
+     * Loads tasks saved by an earlier run.
+     *
+     * @return saved tasks, or an empty list if the data file does not exist
+     * @throws LittleDaisyException if the file cannot be read or is malformed
+     */
+    private static ArrayList<Task> loadTasks() throws LittleDaisyException {
+        ArrayList<Task> tasks = new ArrayList<>();
+        if (!Files.exists(DATA_FILE)) {
+            return tasks;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(DATA_FILE, StandardCharsets.UTF_8);
+            for (int i = 0; i < lines.size(); i++) {
+                if (!lines.get(i).isBlank()) {
+                    tasks.add(parseStoredTask(lines.get(i), i + 1));
+                }
+            }
+            return tasks;
+        } catch (IOException e) {
+            throw new LittleDaisyException("I couldn't read the saved tasks.");
+        }
+    }
+
+    /**
+     * Writes the complete task list, creating the data directory when needed.
+     *
+     * @param tasks current task list
+     * @throws LittleDaisyException if the tasks cannot be saved
+     */
+    private static void saveTasks(ArrayList<Task> tasks) throws LittleDaisyException {
+        ArrayList<String> lines = new ArrayList<>();
+        for (Task task : tasks) {
+            lines.add(formatStoredTask(task));
+        }
+
+        try {
+            Files.createDirectories(DATA_FILE.getParent());
+            Files.write(DATA_FILE, lines, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new LittleDaisyException("I couldn't save the task list.");
+        }
+    }
+
+    /**
+     * Converts a task into one line of the data file.
+     *
+     * @param task task to store
+     * @return tab-separated task data with user-entered fields escaped
+     */
+    private static String formatStoredTask(Task task) {
+        String done = task.isDone ? "1" : "0";
+        if (task instanceof Deadline deadline) {
+            return String.join("\t", "D", done,
+                    escapeField(deadline.description), escapeField(deadline.by));
+        }
+        if (task instanceof Event event) {
+            return String.join("\t", "E", done,
+                    escapeField(event.description), escapeField(event.from), escapeField(event.to));
+        }
+        return String.join("\t", "T", done, escapeField(task.description));
+    }
+
+    /**
+     * Recreates a task from one line of saved data.
+     *
+     * @param line saved line
+     * @param lineNumber one-based location used in an error message
+     * @return reconstructed task
+     * @throws LittleDaisyException if the line has an unexpected shape
+     */
+    private static Task parseStoredTask(String line, int lineNumber)
+            throws LittleDaisyException {
+        String[] fields = line.split("\t", -1);
+        Task task;
+        try {
+            switch (fields[0]) {
+            case "T":
+                requireFieldCount(fields, 3);
+                task = new Todo(unescapeField(fields[2]));
+                break;
+            case "D":
+                requireFieldCount(fields, 4);
+                task = new Deadline(unescapeField(fields[2]), unescapeField(fields[3]));
+                break;
+            case "E":
+                requireFieldCount(fields, 5);
+                task = new Event(unescapeField(fields[2]),
+                        unescapeField(fields[3]), unescapeField(fields[4]));
+                break;
+            default:
+                throw new IllegalArgumentException();
+            }
+            if (fields[1].equals("1")) {
+                task.markAsDone();
+            } else if (!fields[1].equals("0")) {
+                throw new IllegalArgumentException();
+            }
+            return task;
+        } catch (IllegalArgumentException e) {
+            throw new LittleDaisyException(
+                    "Saved task data is invalid at line " + lineNumber + ".");
+        }
+    }
+
+    /** Ensures a stored record has exactly the fields required by its type. */
+    private static void requireFieldCount(String[] fields, int expected) {
+        if (fields.length != expected) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /** Escapes characters that have structural meaning in the data file. */
+    private static String escapeField(String field) {
+        return field.replace("\\", "\\\\")
+                .replace("\t", "\\t")
+                .replace("\n", "\\n");
+    }
+
+    /** Restores a field escaped by {@link #escapeField(String)}. */
+    private static String unescapeField(String field) {
+        StringBuilder result = new StringBuilder();
+        boolean escaped = false;
+        for (int i = 0; i < field.length(); i++) {
+            char current = field.charAt(i);
+            if (!escaped && current == '\\') {
+                escaped = true;
+            } else if (escaped) {
+                if (current == 't') {
+                    result.append('\t');
+                } else if (current == 'n') {
+                    result.append('\n');
+                } else if (current == '\\') {
+                    result.append('\\');
+                } else {
+                    throw new IllegalArgumentException();
+                }
+                escaped = false;
+            } else {
+                result.append(current);
+            }
+        }
+        if (escaped) {
+            throw new IllegalArgumentException();
+        }
+        return result.toString();
     }
 
     /**
