@@ -33,6 +33,16 @@ public class Task {
         isDone = false;
     }
 
+    /** Returns the user-entered task description. */
+    public String getDescription() {
+        return description;
+    }
+
+    /** Returns whether this task has been completed. */
+    public boolean isDone() {
+        return isDone;
+    }
+
     /**
      * Returns the one-character mark shown inside the status box.
      *
