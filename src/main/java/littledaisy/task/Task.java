@@ -1,3 +1,5 @@
+package littledaisy.task;
+
 /**
  * A single item on littleDaisy's task list.
  *

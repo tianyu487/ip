@@ -1,7 +1,11 @@
+package littledaisy.task;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
+
+import littledaisy.exception.LittleDaisyException;
 
 /**
  * A task that has to be finished before a stated point in time, e.g.

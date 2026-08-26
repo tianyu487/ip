@@ -1,4 +1,14 @@
+package littledaisy;
+
 import java.nio.file.Path;
+
+import littledaisy.command.ParsedCommand;
+import littledaisy.command.Parser;
+import littledaisy.exception.LittleDaisyException;
+import littledaisy.storage.Storage;
+import littledaisy.task.Task;
+import littledaisy.task.TaskList;
+import littledaisy.ui.Ui;
 
 /**
  * Coordinates littleDaisy's user interface, command parser, task list, and
