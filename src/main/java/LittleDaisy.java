@@ -168,7 +168,7 @@ public class LittleDaisy {
                         throw new LittleDaisyException(
                                 "A deadline needs \"" + OPTION_BY.trim() + " <time>\" after the description.");
                     }
-                    tasks.add(new Deadline(pieces[0], pieces[1]));
+                    tasks.add(Deadline.fromInput(pieces[0], pieces[1]));
                     saveTasks(tasks);
                     sayTaskChange(MESSAGE_ADDED, tasks.get(tasks.size() - 1), tasks.size());
                     break;
@@ -254,7 +254,7 @@ public class LittleDaisy {
         String done = task.isDone ? "1" : "0";
         if (task instanceof Deadline deadline) {
             return String.join("\t", "D", done,
-                    escapeField(deadline.description), escapeField(deadline.by));
+                    escapeField(deadline.description), deadline.by.toString());
         }
         if (task instanceof Event event) {
             return String.join("\t", "E", done,
@@ -283,7 +283,7 @@ public class LittleDaisy {
                 break;
             case "D":
                 requireFieldCount(fields, 4);
-                task = new Deadline(unescapeField(fields[2]), unescapeField(fields[3]));
+                task = Deadline.fromInput(unescapeField(fields[2]), fields[3]);
                 break;
             case "E":
                 requireFieldCount(fields, 5);
