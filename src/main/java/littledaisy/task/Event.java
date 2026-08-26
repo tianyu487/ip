@@ -1,3 +1,5 @@
+package littledaisy.task;
+
 /**
  * A task that runs between two stated points in time, e.g.
  * {@code project meeting (from: Mon 2pm to: 4pm)}.

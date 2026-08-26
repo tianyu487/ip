@@ -1,3 +1,5 @@
+package littledaisy.exception;
+
 /**
  * Signals that littleDaisy could not carry out what the user asked.
  *

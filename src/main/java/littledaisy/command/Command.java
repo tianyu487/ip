@@ -1,3 +1,5 @@
+package littledaisy.command;
+
 /**
  * The commands littleDaisy understands, one constant per command word.
  *

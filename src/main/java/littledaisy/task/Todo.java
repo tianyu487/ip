@@ -1,3 +1,5 @@
+package littledaisy.task;
+
 /**
  * A task with nothing but a description, e.g. {@code borrow book}.
  *

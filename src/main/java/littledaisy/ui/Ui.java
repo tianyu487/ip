@@ -1,6 +1,11 @@
+package littledaisy.ui;
+
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+
+import littledaisy.task.Task;
+import littledaisy.task.TaskList;
 
 /** Handles all console input and output for littleDaisy. */
 public class Ui {
