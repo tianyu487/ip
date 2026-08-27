@@ -52,7 +52,11 @@ public class Deadline extends Task {
         }
     }
 
-    /** Returns the calendar date by which this task is due. */
+    /**
+     * Returns the calendar date by which this task is due.
+     *
+     * @return due date
+     */
     public LocalDate getBy() {
         return by;
     }

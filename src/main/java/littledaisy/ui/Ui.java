@@ -28,7 +28,12 @@ public class Ui {
         this(System.in, System.out);
     }
 
-    /** Creates a UI using the supplied streams. */
+    /**
+     * Creates a UI using the supplied streams.
+     *
+     * @param input source of user commands
+     * @param output destination for chatbot responses
+     */
     public Ui(InputStream input, PrintStream output) {
         scanner = new Scanner(input);
         this.output = output;
@@ -43,17 +48,29 @@ public class Ui {
         showMessage("Hello! I'm " + BOT_NAME + ".", "What can I do for you?");
     }
 
-    /** Returns whether another command can be read. */
+    /**
+     * Returns whether another command can be read.
+     *
+     * @return {@code true} if another input line is available
+     */
     public boolean hasNextCommand() {
         return scanner.hasNextLine();
     }
 
-    /** Reads the next command line. */
+    /**
+     * Reads the next command line.
+     *
+     * @return raw user command
+     */
     public String readCommand() {
         return scanner.nextLine();
     }
 
-    /** Shows all tasks as a numbered list. */
+    /**
+     * Shows all tasks as a numbered list.
+     *
+     * @param tasks tasks to display
+     */
     public void showList(TaskList tasks) {
         String[] lines = new String[tasks.size() + 1];
         lines[0] = "Here are the tasks in your list:";
@@ -63,27 +80,49 @@ public class Ui {
         showMessage(lines);
     }
 
-    /** Shows confirmation that a task was marked. */
+    /**
+     * Shows confirmation that a task was marked.
+     *
+     * @param task task whose status changed
+     */
     public void showMarked(Task task) {
         showMessage("Nice! I've marked this task as done:", "  " + task);
     }
 
-    /** Shows confirmation that a task was unmarked. */
+    /**
+     * Shows confirmation that a task was unmarked.
+     *
+     * @param task task whose status changed
+     */
     public void showUnmarked(Task task) {
         showMessage("OK, I've marked this task as not done yet:", "  " + task);
     }
 
-    /** Shows confirmation that a task was added. */
+    /**
+     * Shows confirmation that a task was added.
+     *
+     * @param task added task
+     * @param taskCount resulting task count
+     */
     public void showAdded(Task task, int taskCount) {
         showTaskChange("Got it. I've added this task:", task, taskCount);
     }
 
-    /** Shows confirmation that a task was deleted. */
+    /**
+     * Shows confirmation that a task was deleted.
+     *
+     * @param task deleted task
+     * @param taskCount resulting task count
+     */
     public void showDeleted(Task task, int taskCount) {
         showTaskChange("Noted. I've removed this task:", task, taskCount);
     }
 
-    /** Shows a recoverable user-facing error. */
+    /**
+     * Shows a recoverable user-facing error.
+     *
+     * @param message error explanation
+     */
     public void showError(String message) {
         showMessage("OOPS!!! " + message);
     }

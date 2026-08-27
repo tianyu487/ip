@@ -24,12 +24,20 @@ public class Event extends Task {
         this.to = to;
     }
 
-    /** Returns the user-entered event start. */
+    /**
+     * Returns the user-entered event start.
+     *
+     * @return event start text
+     */
     public String getFrom() {
         return from;
     }
 
-    /** Returns the user-entered event end. */
+    /**
+     * Returns the user-entered event end.
+     *
+     * @return event end text
+     */
     public String getTo() {
         return to;
     }
