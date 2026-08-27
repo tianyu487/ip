@@ -76,44 +76,44 @@ public class LittleDaisy {
     /** Executes one parsed command and returns whether it exits the app. */
     private boolean execute(ParsedCommand parsed) throws LittleDaisyException {
         switch (parsed.command()) {
-        case BYE:
-            return true;
-        case LIST:
-            ui.showList(tasks);
-            break;
-        case MARK: {
-            Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
-            task.markAsDone();
-            storage.save(tasks);
-            ui.showMarked(task);
-            break;
-        }
-        case UNMARK: {
-            Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
-            task.markAsNotDone();
-            storage.save(tasks);
-            ui.showUnmarked(task);
-            break;
-        }
-        case DELETE: {
-            int index = Parser.parseTaskIndex(parsed.arguments(), tasks.size());
-            Task removed = tasks.delete(index);
-            storage.save(tasks);
-            ui.showDeleted(removed, tasks.size());
-            break;
-        }
-        case TODO:
-            addAndSave(Parser.parseTodo(parsed.arguments()));
-            break;
-        case DEADLINE:
-            addAndSave(Parser.parseDeadline(parsed.arguments()));
-            break;
-        case EVENT:
-            addAndSave(Parser.parseEvent(parsed.arguments()));
-            break;
-        default:
-            throw new LittleDaisyException(
-                    "I'm sorry, but I don't know what that means :-(");
+            case BYE:
+                return true;
+            case LIST:
+                ui.showList(tasks);
+                break;
+            case MARK: {
+                Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
+                task.markAsDone();
+                storage.save(tasks);
+                ui.showMarked(task);
+                break;
+            }
+            case UNMARK: {
+                Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
+                task.markAsNotDone();
+                storage.save(tasks);
+                ui.showUnmarked(task);
+                break;
+            }
+            case DELETE: {
+                int index = Parser.parseTaskIndex(parsed.arguments(), tasks.size());
+                Task removed = tasks.delete(index);
+                storage.save(tasks);
+                ui.showDeleted(removed, tasks.size());
+                break;
+            }
+            case TODO:
+                addAndSave(Parser.parseTodo(parsed.arguments()));
+                break;
+            case DEADLINE:
+                addAndSave(Parser.parseDeadline(parsed.arguments()));
+                break;
+            case EVENT:
+                addAndSave(Parser.parseEvent(parsed.arguments()));
+                break;
+            default:
+                throw new LittleDaisyException(
+                        "I'm sorry, but I don't know what that means :-(");
         }
         return false;
     }

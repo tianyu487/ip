@@ -6,10 +6,10 @@ package littledaisy.task;
  */
 public class Event extends Task {
     /** When the event starts, as the user typed it. */
-    protected String from;
+    private final String from;
 
     /** When the event ends, as the user typed it. */
-    protected String to;
+    private final String to;
 
     /**
      * Creates an event that is not done yet.

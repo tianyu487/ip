@@ -3,17 +3,14 @@ package littledaisy.task;
 /**
  * A single item on littleDaisy's task list.
  *
- * <p>A task is just a line of text plus a flag saying whether it has been
- * done. Level-4 will add subclasses for the different kinds of task, which is
- * why the fields are {@code protected} rather than {@code private}: the
- * subclasses need to reach them directly.
+ * <p>A task is a line of text plus a flag saying whether it has been done.
  */
 public class Task {
     /** What the user typed when adding this task. */
-    protected String description;
+    private final String description;
 
     /** Whether the user has marked this task as done. */
-    protected boolean isDone;
+    private boolean isDone;
 
     /**
      * Creates a task that is not done yet.
