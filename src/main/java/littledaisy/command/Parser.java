@@ -15,7 +15,12 @@ public final class Parser {
     private Parser() {
     }
 
-    /** Separates a command word from the rest of its input line. */
+    /**
+     * Separates a command word from the rest of its input line.
+     *
+     * @param input raw command line
+     * @return recognized command and its remaining arguments
+     */
     public static ParsedCommand parse(String input) {
         String trimmed = input.trim();
         int firstSpace = trimmed.indexOf(' ');
@@ -24,7 +29,14 @@ public final class Parser {
         return new ParsedCommand(Command.of(word), arguments);
     }
 
-    /** Parses and validates a user-facing task number as a zero-based index. */
+    /**
+     * Parses and validates a user-facing task number as a zero-based index.
+     *
+     * @param arguments text following a mark, unmark, or delete command
+     * @param taskCount number of tasks currently stored
+     * @return zero-based task-list index
+     * @throws LittleDaisyException if the task number is missing or invalid
+     */
     public static int parseTaskIndex(String arguments, int taskCount)
             throws LittleDaisyException {
         if (arguments.isBlank()) {
@@ -44,19 +56,37 @@ public final class Parser {
         return number - 1;
     }
 
-    /** Creates a todo from its command arguments. */
+    /**
+     * Creates a todo from its command arguments.
+     *
+     * @param arguments user-entered todo description
+     * @return parsed todo
+     * @throws LittleDaisyException if the description is empty
+     */
     public static Todo parseTodo(String arguments) throws LittleDaisyException {
         return new Todo(requireDescription(arguments, "todo"));
     }
 
-    /** Creates a deadline from its description and {@code /by} date. */
+    /**
+     * Creates a deadline from its description and {@code /by} date.
+     *
+     * @param arguments description followed by a date option
+     * @return parsed deadline
+     * @throws LittleDaisyException if the description or date is invalid
+     */
     public static Deadline parseDeadline(String arguments) throws LittleDaisyException {
         String[] pieces = splitRequired(arguments, OPTION_BY,
                 "A deadline needs \"/by <date>\" after the description.");
         return Deadline.fromInput(pieces[0], pieces[1]);
     }
 
-    /** Creates an event from its description, start, and end. */
+    /**
+     * Creates an event from its description, start, and end.
+     *
+     * @param arguments description followed by {@code /from} and {@code /to}
+     * @return parsed event
+     * @throws LittleDaisyException if a required field is missing
+     */
     public static Event parseEvent(String arguments) throws LittleDaisyException {
         String[] descriptionAndTimes = splitRequired(arguments, OPTION_FROM,
                 "An event needs \"/from <start>\" after the description.");

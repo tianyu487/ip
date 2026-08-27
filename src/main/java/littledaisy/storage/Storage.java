@@ -18,12 +18,21 @@ import littledaisy.task.Todo;
 public class Storage {
     private final Path filePath;
 
-    /** Creates storage backed by the specified path. */
+    /**
+     * Creates storage backed by the specified path.
+     *
+     * @param filePath location used to load and save tasks
+     */
     public Storage(Path filePath) {
         this.filePath = filePath;
     }
 
-    /** Loads saved tasks, or returns an empty list if no data file exists. */
+    /**
+     * Loads saved tasks, or returns an empty list if no data file exists.
+     *
+     * @return reconstructed tasks in their saved order
+     * @throws LittleDaisyException if the file cannot be read or is malformed
+     */
     public List<Task> load() throws LittleDaisyException {
         ArrayList<Task> tasks = new ArrayList<>();
         if (!Files.exists(filePath)) {
@@ -43,7 +52,12 @@ public class Storage {
         }
     }
 
-    /** Writes all current tasks, creating the parent directory if needed. */
+    /**
+     * Writes all current tasks, creating the parent directory if needed.
+     *
+     * @param tasks task list to persist
+     * @throws LittleDaisyException if the file cannot be written
+     */
     public void save(TaskList tasks) throws LittleDaisyException {
         ArrayList<String> lines = new ArrayList<>();
         for (Task task : tasks.asList()) {

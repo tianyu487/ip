@@ -35,12 +35,20 @@ public class Task {
         isDone = false;
     }
 
-    /** Returns the user-entered task description. */
+    /**
+     * Returns the user-entered task description.
+     *
+     * @return task description
+     */
     public String getDescription() {
         return description;
     }
 
-    /** Returns whether this task has been completed. */
+    /**
+     * Returns whether this task has been completed.
+     *
+     * @return {@code true} if the task is marked as done
+     */
     public boolean isDone() {
         return isDone;
     }

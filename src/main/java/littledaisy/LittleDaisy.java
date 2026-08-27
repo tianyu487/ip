@@ -23,7 +23,11 @@ public class LittleDaisy {
     private final Ui ui;
     private final String loadingError;
 
-    /** Creates an application backed by the specified data file. */
+    /**
+     * Creates an application backed by the specified data file.
+     *
+     * @param filePath location used to load and save tasks
+     */
     public LittleDaisy(Path filePath) {
         ui = new Ui();
         storage = new Storage(filePath);
@@ -40,7 +44,11 @@ public class LittleDaisy {
         loadingError = loadFailure;
     }
 
-    /** Starts littleDaisy using its normal data-file location. */
+    /**
+     * Starts littleDaisy using its normal data-file location.
+     *
+     * @param args command-line arguments, which are not used
+     */
     public static void main(String[] args) {
         new LittleDaisy(DATA_FILE).run();
     }
