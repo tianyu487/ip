@@ -33,6 +33,9 @@ public enum Command {
     /** Removes a task from the list. */
     DELETE("delete"),
 
+    /** Finds tasks whose descriptions contain a keyword. */
+    FIND("find"),
+
     /** Stands for any word that is none of the above. */
     UNKNOWN("");
 

@@ -94,6 +94,9 @@ public class LittleDaisy {
             ui.showDeleted(removed, tasks.size());
             break;
         }
+        case FIND:
+            ui.showMatches(tasks.find(Parser.parseFindKeyword(parsed.arguments())));
+            break;
         case TODO:
             addAndSave(Parser.parseTodo(parsed.arguments()));
             break;

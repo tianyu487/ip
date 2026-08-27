@@ -55,8 +55,18 @@ public class Ui {
 
     /** Shows all tasks as a numbered list. */
     public void showList(TaskList tasks) {
+        showTasks("Here are the tasks in your list:", tasks);
+    }
+
+    /** Shows all tasks matching a find command as a numbered list. */
+    public void showMatches(TaskList tasks) {
+        showTasks("Here are the matching tasks in your list:", tasks);
+    }
+
+    /** Shows the supplied tasks under a heading as a numbered list. */
+    private void showTasks(String heading, TaskList tasks) {
         String[] lines = new String[tasks.size() + 1];
-        lines[0] = "Here are the tasks in your list:";
+        lines[0] = heading;
         for (int i = 0; i < tasks.size(); i++) {
             lines[i + 1] = (i + 1) + "." + tasks.get(i);
         }

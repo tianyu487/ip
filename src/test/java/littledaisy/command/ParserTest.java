@@ -40,6 +40,13 @@ class ParserTest {
     }
 
     @Test
+    void parseFindKeyword_presentAndMissingKeyword_keywordOrExceptionReturned()
+            throws LittleDaisyException {
+        assertEquals("report", Parser.parseFindKeyword("report"));
+        assertThrows(LittleDaisyException.class, () -> Parser.parseFindKeyword(""));
+    }
+
+    @Test
     void parseDeadline_validInput_structuredDeadlineReturned()
             throws LittleDaisyException {
         Deadline deadline = Parser.parseDeadline("submit report /by 2026-09-01");

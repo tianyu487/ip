@@ -1,0 +1,30 @@
+package littledaisy.task;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+class TaskListTest {
+    @Test
+    void find_keywordWithDifferentCase_matchingDescriptionsReturned() {
+        TaskList tasks = new TaskList(List.of(
+                new Todo("read book"),
+                new Todo("return BOOK"),
+                new Todo("write report")));
+
+        TaskList matches = tasks.find("book");
+
+        assertEquals(2, matches.size());
+        assertEquals("read book", matches.get(0).getDescription());
+        assertEquals("return BOOK", matches.get(1).getDescription());
+    }
+
+    @Test
+    void find_keywordNotPresent_emptyListReturned() {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+
+        assertEquals(0, tasks.find("report").size());
+    }
+}

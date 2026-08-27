@@ -49,6 +49,14 @@ public final class Parser {
         return new Todo(requireDescription(arguments, "todo"));
     }
 
+    /** Returns a non-empty keyword for a find command. */
+    public static String parseFindKeyword(String arguments) throws LittleDaisyException {
+        if (arguments.isBlank()) {
+            throw new LittleDaisyException("Please tell me what to find.");
+        }
+        return arguments;
+    }
+
     /** Creates a deadline from its description and {@code /by} date. */
     public static Deadline parseDeadline(String arguments) throws LittleDaisyException {
         String[] pieces = splitRequired(arguments, OPTION_BY,
