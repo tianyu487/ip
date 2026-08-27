@@ -68,6 +68,20 @@ public final class Parser {
     }
 
     /**
+     * Returns a non-empty keyword for a find command.
+     *
+     * @param arguments keyword supplied after the command word
+     * @return validated keyword
+     * @throws LittleDaisyException if the keyword is empty
+     */
+    public static String parseFindKeyword(String arguments) throws LittleDaisyException {
+        if (arguments.isBlank()) {
+            throw new LittleDaisyException("Please tell me what to find.");
+        }
+        return arguments;
+    }
+
+    /**
      * Creates a deadline from its description and {@code /by} date.
      *
      * @param arguments description followed by a date option

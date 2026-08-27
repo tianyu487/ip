@@ -3,6 +3,7 @@ package littledaisy.task;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /** Owns the application's ordered collection of tasks. */
 public class TaskList {
@@ -58,6 +59,24 @@ public class TaskList {
      */
     public int size() {
         return tasks.size();
+    }
+
+    /**
+     * Returns tasks whose descriptions contain the keyword, ignoring case.
+     *
+     * @param keyword text to find in task descriptions
+     * @return a new list containing the matching tasks in their original order
+     */
+    public TaskList find(String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        ArrayList<Task> matches = new ArrayList<>();
+        for (Task task : tasks) {
+            String description = task.getDescription().toLowerCase(Locale.ROOT);
+            if (description.contains(normalizedKeyword)) {
+                matches.add(task);
+            }
+        }
+        return new TaskList(matches);
     }
 
     /**
