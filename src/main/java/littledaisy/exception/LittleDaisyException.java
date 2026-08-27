@@ -9,6 +9,8 @@ package littledaisy.exception;
  * on with the next line of input.
  */
 public class LittleDaisyException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Creates an exception carrying a message meant for the user.
      *

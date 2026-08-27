@@ -21,7 +21,7 @@ public class Deadline extends Task {
             DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
 
     /** Calendar date by which the task has to be done. */
-    protected LocalDate by;
+    private final LocalDate by;
 
     /**
      * Creates a deadline that is not done yet.

@@ -83,21 +83,21 @@ public class Storage {
         Task task;
         try {
             switch (fields[0]) {
-            case "T":
-                requireFieldCount(fields, 3);
-                task = new Todo(unescapeField(fields[2]));
-                break;
-            case "D":
-                requireFieldCount(fields, 4);
-                task = Deadline.fromInput(unescapeField(fields[2]), fields[3]);
-                break;
-            case "E":
-                requireFieldCount(fields, 5);
-                task = new Event(unescapeField(fields[2]),
-                        unescapeField(fields[3]), unescapeField(fields[4]));
-                break;
-            default:
-                throw new IllegalArgumentException();
+                case "T":
+                    requireFieldCount(fields, 3);
+                    task = new Todo(unescapeField(fields[2]));
+                    break;
+                case "D":
+                    requireFieldCount(fields, 4);
+                    task = Deadline.fromInput(unescapeField(fields[2]), fields[3]);
+                    break;
+                case "E":
+                    requireFieldCount(fields, 5);
+                    task = new Event(unescapeField(fields[2]),
+                            unescapeField(fields[3]), unescapeField(fields[4]));
+                    break;
+                default:
+                    throw new IllegalArgumentException();
             }
             if (fields[1].equals("1")) {
                 task.markAsDone();
