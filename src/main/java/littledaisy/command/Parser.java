@@ -3,7 +3,6 @@ package littledaisy.command;
 import littledaisy.exception.LittleDaisyException;
 import littledaisy.task.Deadline;
 import littledaisy.task.Event;
-import littledaisy.task.Task;
 import littledaisy.task.Todo;
 
 /** Converts raw command lines into commands and domain objects. */
