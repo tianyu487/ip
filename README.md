@@ -16,3 +16,10 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 1. After that, locate the `src/main/java/littledaisy/LittleDaisy.java` file, right-click it, and choose `Run LittleDaisy.main()` (if the code editor is showing compile errors, try restarting the IDE). If the setup is correct, you should see the littleDaisy banner in the output.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## Running littleDaisy
+
+- Run the JavaFX interface with `./gradlew run` (macOS/Linux) or `gradlew.bat run` (Windows).
+- Run the original text interface from `LittleDaisy.main()` in the IDE.
+- Run tests and coding-standard checks with `./gradlew check`.
+- Build the executable fat JAR with `./gradlew shadowJar`; the output is `build/libs/littleDaisy.jar`.
