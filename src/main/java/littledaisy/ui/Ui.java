@@ -45,7 +45,7 @@ public class Ui {
             output.println(row);
         }
         output.println();
-        showMessage("Hello! I'm " + BOT_NAME + ".", "What can I do for you?");
+        showResponse(getWelcomeMessage());
     }
 
     /**
@@ -72,7 +72,7 @@ public class Ui {
      * @param tasks tasks to display
      */
     public void showList(TaskList tasks) {
-        showTasks("Here are the tasks in your list:", tasks);
+        showResponse(getListMessage(tasks));
     }
 
     /**
@@ -81,17 +81,7 @@ public class Ui {
      * @param tasks matching tasks to display
      */
     public void showMatches(TaskList tasks) {
-        showTasks("Here are the matching tasks in your list:", tasks);
-    }
-
-    /** Shows the supplied tasks under a heading as a numbered list. */
-    private void showTasks(String heading, TaskList tasks) {
-        String[] lines = new String[tasks.size() + 1];
-        lines[0] = heading;
-        for (int i = 0; i < tasks.size(); i++) {
-            lines[i + 1] = (i + 1) + "." + tasks.get(i);
-        }
-        showMessage(lines);
+        showResponse(getMatchesMessage(tasks));
     }
 
     /**
@@ -100,7 +90,7 @@ public class Ui {
      * @param task task whose status changed
      */
     public void showMarked(Task task) {
-        showMessage("Nice! I've marked this task as done:", "  " + task);
+        showResponse(getMarkedMessage(task));
     }
 
     /**
@@ -109,7 +99,7 @@ public class Ui {
      * @param task task whose status changed
      */
     public void showUnmarked(Task task) {
-        showMessage("OK, I've marked this task as not done yet:", "  " + task);
+        showResponse(getUnmarkedMessage(task));
     }
 
     /**
@@ -119,7 +109,7 @@ public class Ui {
      * @param taskCount resulting task count
      */
     public void showAdded(Task task, int taskCount) {
-        showTaskChange("Got it. I've added this task:", task, taskCount);
+        showResponse(getAddedMessage(task, taskCount));
     }
 
     /**
@@ -129,7 +119,7 @@ public class Ui {
      * @param taskCount resulting task count
      */
     public void showDeleted(Task task, int taskCount) {
-        showTaskChange("Noted. I've removed this task:", task, taskCount);
+        showResponse(getDeletedMessage(task, taskCount));
     }
 
     /**
@@ -138,12 +128,12 @@ public class Ui {
      * @param message error explanation
      */
     public void showError(String message) {
-        showMessage("OOPS!!! " + message);
+        showResponse(getErrorMessage(message));
     }
 
     /** Shows the sign-off message. */
     public void showGoodbye() {
-        showMessage("Bye. Hope to see you again soon!");
+        showResponse(getGoodbyeMessage());
     }
 
     /** Closes the input scanner. */
@@ -151,11 +141,76 @@ public class Ui {
         scanner.close();
     }
 
-    /** Shows a task change and the resulting list size. */
-    private void showTaskChange(String message, Task task, int taskCount) {
-        showMessage(message,
+    /** Returns the greeting shared by the text and graphical interfaces. */
+    public String getWelcomeMessage() {
+        return joinLines("Hello! I'm " + BOT_NAME + ".", "What can I do for you?");
+    }
+
+    /** Returns a numbered rendering of all tasks. */
+    public String getListMessage(TaskList tasks) {
+        return getTasksMessage("Here are the tasks in your list:", tasks);
+    }
+
+    /** Returns a numbered rendering of tasks matched by a find command. */
+    public String getMatchesMessage(TaskList tasks) {
+        return getTasksMessage("Here are the matching tasks in your list:", tasks);
+    }
+
+    /** Returns confirmation that a task was marked. */
+    public String getMarkedMessage(Task task) {
+        return joinLines("Nice! I've marked this task as done:", "  " + task);
+    }
+
+    /** Returns confirmation that a task was unmarked. */
+    public String getUnmarkedMessage(Task task) {
+        return joinLines("OK, I've marked this task as not done yet:", "  " + task);
+    }
+
+    /** Returns confirmation that a task was added. */
+    public String getAddedMessage(Task task, int taskCount) {
+        return getTaskChangeMessage("Got it. I've added this task:", task, taskCount);
+    }
+
+    /** Returns confirmation that a task was deleted. */
+    public String getDeletedMessage(Task task, int taskCount) {
+        return getTaskChangeMessage("Noted. I've removed this task:", task, taskCount);
+    }
+
+    /** Returns a user-facing error message. */
+    public String getErrorMessage(String message) {
+        return "OOPS!!! " + message;
+    }
+
+    /** Returns the sign-off message. */
+    public String getGoodbyeMessage() {
+        return "Bye. Hope to see you again soon!";
+    }
+
+    /** Prints one already-formatted response between text-UI dividers. */
+    public void showResponse(String response) {
+        showMessage(response.split("\\R", -1));
+    }
+
+    /** Returns the supplied tasks under a heading as a numbered list. */
+    private String getTasksMessage(String heading, TaskList tasks) {
+        String[] lines = new String[tasks.size() + 1];
+        lines[0] = heading;
+        for (int i = 0; i < tasks.size(); i++) {
+            lines[i + 1] = (i + 1) + "." + tasks.get(i);
+        }
+        return joinLines(lines);
+    }
+
+    /** Returns a task change and the resulting list size. */
+    private String getTaskChangeMessage(String message, Task task, int taskCount) {
+        return joinLines(message,
                 "  " + task,
                 "Now you have " + taskCount + " tasks in the list.");
+    }
+
+    /** Joins any number of response lines using the platform line separator. */
+    private String joinLines(String... lines) {
+        return String.join(System.lineSeparator(), lines);
     }
 
     /** Prints the supplied lines, indented, between dividers. */

@@ -23,6 +23,11 @@ public class LittleDaisy {
     private final Ui ui;
     private final String loadingError;
 
+    /** Creates an application backed by the normal data-file location. */
+    public LittleDaisy() {
+        this(DATA_FILE);
+    }
+
     /**
      * Creates an application backed by the specified data file.
      *
@@ -50,7 +55,7 @@ public class LittleDaisy {
      * @param args command-line arguments, which are not used
      */
     public static void main(String[] args) {
-        new LittleDaisy(DATA_FILE).run();
+        new LittleDaisy().run();
     }
 
     /** Reads and executes commands until the user exits or input ends. */
@@ -62,69 +67,93 @@ public class LittleDaisy {
 
         boolean isExit = false;
         while (!isExit && ui.hasNextCommand()) {
-            ParsedCommand parsed = Parser.parse(ui.readCommand());
-            try {
-                isExit = execute(parsed);
-            } catch (LittleDaisyException e) {
-                ui.showError(e.getMessage());
-            }
+            String input = ui.readCommand();
+            ParsedCommand parsed = Parser.parse(input);
+            isExit = parsed.command() == littledaisy.command.Command.BYE;
+            ui.showResponse(getResponse(parsed));
         }
-        ui.showGoodbye();
+        if (!isExit) {
+            ui.showGoodbye();
+        }
         ui.close();
     }
 
-    /** Executes one parsed command and returns whether it exits the app. */
-    private boolean execute(ParsedCommand parsed) throws LittleDaisyException {
+    /**
+     * Returns the greeting to show when either interface starts.
+     *
+     * @return greeting, including any recoverable loading error
+     */
+    public String getWelcomeMessage() {
+        String greeting = ui.getWelcomeMessage();
+        if (loadingError == null) {
+            return greeting;
+        }
+        return greeting + System.lineSeparator() + ui.getErrorMessage(loadingError);
+    }
+
+    /**
+     * Executes one user command and returns the response for display.
+     *
+     * @param input raw command entered by the user
+     * @return chatbot response, including validation errors
+     */
+    public String getResponse(String input) {
+        return getResponse(Parser.parse(input));
+    }
+
+    /** Executes one parsed command and converts recoverable errors to responses. */
+    private String getResponse(ParsedCommand parsed) {
+        try {
+            return execute(parsed);
+        } catch (LittleDaisyException e) {
+            return ui.getErrorMessage(e.getMessage());
+        }
+    }
+
+    /** Executes one parsed command and returns its successful response. */
+    private String execute(ParsedCommand parsed) throws LittleDaisyException {
         switch (parsed.command()) {
             case BYE:
-                return true;
+                return ui.getGoodbyeMessage();
             case LIST:
-                ui.showList(tasks);
-                break;
+                return ui.getListMessage(tasks);
             case MARK: {
                 Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
                 task.markAsDone();
                 storage.save(tasks);
-                ui.showMarked(task);
-                break;
+                return ui.getMarkedMessage(task);
             }
             case UNMARK: {
                 Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
                 task.markAsNotDone();
                 storage.save(tasks);
-                ui.showUnmarked(task);
-                break;
+                return ui.getUnmarkedMessage(task);
             }
             case DELETE: {
                 int index = Parser.parseTaskIndex(parsed.arguments(), tasks.size());
                 Task removed = tasks.delete(index);
                 storage.save(tasks);
-                ui.showDeleted(removed, tasks.size());
-                break;
+                return ui.getDeletedMessage(removed, tasks.size());
             }
             case FIND:
-                ui.showMatches(tasks.find(Parser.parseFindKeyword(parsed.arguments())));
-                break;
+                return ui.getMatchesMessage(
+                        tasks.find(Parser.parseFindKeyword(parsed.arguments())));
             case TODO:
-                addAndSave(Parser.parseTodo(parsed.arguments()));
-                break;
+                return addAndSave(Parser.parseTodo(parsed.arguments()));
             case DEADLINE:
-                addAndSave(Parser.parseDeadline(parsed.arguments()));
-                break;
+                return addAndSave(Parser.parseDeadline(parsed.arguments()));
             case EVENT:
-                addAndSave(Parser.parseEvent(parsed.arguments()));
-                break;
+                return addAndSave(Parser.parseEvent(parsed.arguments()));
             default:
                 throw new LittleDaisyException(
                         "I'm sorry, but I don't know what that means :-(");
         }
-        return false;
     }
 
-    /** Adds one task, persists the new list, and reports the change. */
-    private void addAndSave(Task task) throws LittleDaisyException {
+    /** Adds one task, persists the new list, and returns the change response. */
+    private String addAndSave(Task task) throws LittleDaisyException {
         tasks.add(task);
         storage.save(tasks);
-        ui.showAdded(task, tasks.size());
+        return ui.getAddedMessage(task, tasks.size());
     }
 }
