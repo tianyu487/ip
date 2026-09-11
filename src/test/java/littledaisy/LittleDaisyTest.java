@@ -31,4 +31,14 @@ class LittleDaisyTest {
 
         assertTrue(reloadedInstance.getResponse("list").contains("submit (by: Sep 4 2026)"));
     }
+
+    @Test
+    void getResponse_markUnmarkAndDelete_responsesReflectChanges() {
+        LittleDaisy littleDaisy = new LittleDaisy(tempDirectory.resolve("tasks.txt"));
+        littleDaisy.getResponse("todo Finish GUI");
+
+        assertTrue(littleDaisy.getResponse("mark 1").contains("[T][X] Finish GUI"));
+        assertTrue(littleDaisy.getResponse("unmark 1").contains("[T][ ] Finish GUI"));
+        assertTrue(littleDaisy.getResponse("delete 1").contains("Now you have 0 tasks"));
+    }
 }

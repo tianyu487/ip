@@ -117,24 +117,12 @@ public class LittleDaisy {
                 return ui.getGoodbyeMessage();
             case LIST:
                 return ui.getListMessage(tasks);
-            case MARK: {
-                Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
-                task.markAsDone();
-                storage.save(tasks);
-                return ui.getMarkedMessage(task);
-            }
-            case UNMARK: {
-                Task task = tasks.get(Parser.parseTaskIndex(parsed.arguments(), tasks.size()));
-                task.markAsNotDone();
-                storage.save(tasks);
-                return ui.getUnmarkedMessage(task);
-            }
-            case DELETE: {
-                int index = Parser.parseTaskIndex(parsed.arguments(), tasks.size());
-                Task removed = tasks.delete(index);
-                storage.save(tasks);
-                return ui.getDeletedMessage(removed, tasks.size());
-            }
+            case MARK:
+                return markAndSave(parsed.arguments());
+            case UNMARK:
+                return unmarkAndSave(parsed.arguments());
+            case DELETE:
+                return deleteAndSave(parsed.arguments());
             case FIND:
                 return ui.getMatchesMessage(
                         tasks.find(Parser.parseFindKeyword(parsed.arguments())));
@@ -148,6 +136,36 @@ public class LittleDaisy {
                 throw new LittleDaisyException(
                         "I'm sorry, but I don't know what that means :-(");
         }
+    }
+
+    /** Marks one selected task as done and persists the change. */
+    private String markAndSave(String arguments) throws LittleDaisyException {
+        Task task = getTask(arguments);
+        task.markAsDone();
+        storage.save(tasks);
+        return ui.getMarkedMessage(task);
+    }
+
+    /** Marks one selected task as not done and persists the change. */
+    private String unmarkAndSave(String arguments) throws LittleDaisyException {
+        Task task = getTask(arguments);
+        task.markAsNotDone();
+        storage.save(tasks);
+        return ui.getUnmarkedMessage(task);
+    }
+
+    /** Deletes one selected task, persists the change, and reports the new size. */
+    private String deleteAndSave(String arguments) throws LittleDaisyException {
+        int index = Parser.parseTaskIndex(arguments, tasks.size());
+        Task removed = tasks.delete(index);
+        storage.save(tasks);
+        return ui.getDeletedMessage(removed, tasks.size());
+    }
+
+    /** Returns the task identified by user-facing command arguments. */
+    private Task getTask(String arguments) throws LittleDaisyException {
+        int index = Parser.parseTaskIndex(arguments, tasks.size());
+        return tasks.get(index);
     }
 
     /** Adds one task, persists the new list, and returns the change response. */
