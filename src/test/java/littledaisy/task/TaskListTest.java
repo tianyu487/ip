@@ -1,12 +1,20 @@
 package littledaisy.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 class TaskListTest {
+    @Test
+    void get_indexOutsideList_assertionErrorThrown() {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+
+        assertThrows(AssertionError.class, () -> tasks.get(1));
+    }
+
     @Test
     void find_keywordWithDifferentCase_matchingDescriptionsReturned() {
         TaskList tasks = new TaskList(List.of(
