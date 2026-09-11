@@ -36,6 +36,9 @@ public enum Command {
     /** Finds tasks whose descriptions contain a keyword. */
     FIND("find"),
 
+    /** Shows the command reference. */
+    HELP("help"),
+
     /** Stands for any word that is none of the above. */
     UNKNOWN("");
 

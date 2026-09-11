@@ -41,4 +41,15 @@ class LittleDaisyTest {
         assertTrue(littleDaisy.getResponse("unmark 1").contains("[T][ ] Finish GUI"));
         assertTrue(littleDaisy.getResponse("delete 1").contains("Now you have 0 tasks"));
     }
+
+    @Test
+    void getResponse_help_commandReferenceReturned() {
+        LittleDaisy littleDaisy = new LittleDaisy(tempDirectory.resolve("tasks.txt"));
+
+        String response = littleDaisy.getResponse("help");
+
+        assertTrue(response.contains("todo <description>"));
+        assertTrue(response.contains("deadline <description> /by <yyyy-MM-dd>"));
+        assertTrue(response.contains("bye"));
+    }
 }
