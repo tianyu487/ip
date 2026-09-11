@@ -181,6 +181,22 @@ public class Ui {
         return "OOPS!!! " + message;
     }
 
+    /** Returns a concise reference for every supported command. */
+    public String getHelpMessage() {
+        return joinLines(
+                "Here are the commands I understand:",
+                "  todo <description>",
+                "  deadline <description> /by <yyyy-MM-dd>",
+                "  event <description> /from <start> /to <end>",
+                "  list",
+                "  find <keyword>",
+                "  mark <task number>",
+                "  unmark <task number>",
+                "  delete <task number>",
+                "  help",
+                "  bye");
+    }
+
     /** Returns the sign-off message. */
     public String getGoodbyeMessage() {
         return "Bye. Hope to see you again soon!";

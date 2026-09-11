@@ -126,6 +126,8 @@ public class LittleDaisy {
             case FIND:
                 return ui.getMatchesMessage(
                         tasks.find(Parser.parseFindKeyword(parsed.arguments())));
+            case HELP:
+                return ui.getHelpMessage();
             case TODO:
                 return addAndSave(Parser.parseTodo(parsed.arguments()));
             case DEADLINE:
