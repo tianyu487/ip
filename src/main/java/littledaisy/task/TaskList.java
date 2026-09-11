@@ -39,6 +39,7 @@ public class TaskList {
      * @return task at the specified position
      */
     public Task get(int index) {
+        assert isValidIndex(index) : "task index should be within the list";
         return tasks.get(index);
     }
 
@@ -49,7 +50,13 @@ public class TaskList {
      * @return removed task
      */
     public Task delete(int index) {
+        assert isValidIndex(index) : "task index should be within the list";
         return tasks.remove(index);
+    }
+
+    /** Returns whether the index identifies an existing task. */
+    private boolean isValidIndex(int index) {
+        return index >= 0 && index < tasks.size();
     }
 
     /**
