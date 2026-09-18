@@ -49,7 +49,9 @@ public class MainWindow {
         String response = littleDaisy.getResponse(input);
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input),
-                DialogBox.getDaisyDialog(response));
+                response.startsWith("OOPS!!!")
+                        ? DialogBox.getErrorDialog(response)
+                        : DialogBox.getDaisyDialog(response));
         userInput.clear();
     }
 }

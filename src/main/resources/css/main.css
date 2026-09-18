@@ -53,3 +53,14 @@
 .daisy-avatar {
     -fx-background-color: #779d69;
 }
+
+.error-dialog {
+    -fx-background-color: #f7c8c8;
+    -fx-border-color: #b94a48;
+    -fx-border-radius: 14px;
+    -fx-text-fill: #742a28;
+}
+
+.error-avatar {
+    -fx-background-color: #b94a48;
+}

@@ -59,4 +59,12 @@ public class DialogBox extends HBox {
         box.flip();
         return box;
     }
+
+    /** Returns a visually prominent left-aligned error response. */
+    public static DialogBox getErrorDialog(String text) {
+        DialogBox box = getDaisyDialog(text);
+        box.dialog.getStyleClass().add("error-dialog");
+        box.avatar.getStyleClass().add("error-avatar");
+        return box;
+    }
 }
