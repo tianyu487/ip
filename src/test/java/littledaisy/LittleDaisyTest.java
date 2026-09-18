@@ -52,4 +52,16 @@ class LittleDaisyTest {
         assertTrue(response.contains("deadline <description> /by <yyyy-MM-dd>"));
         assertTrue(response.contains("bye"));
     }
+
+    @Test
+    void getResponse_duplicateTask_errorReturnedAndListUnchanged() {
+        LittleDaisy littleDaisy = new LittleDaisy(tempDirectory.resolve("tasks.txt"));
+        littleDaisy.getResponse("todo Read book");
+
+        String response = littleDaisy.getResponse("todo read BOOK");
+
+        assertTrue(response.startsWith("OOPS!!!"));
+        assertTrue(response.contains("already in your list"));
+        assertTrue(littleDaisy.getResponse("list").contains("1.[T][ ] Read book"));
+    }
 }

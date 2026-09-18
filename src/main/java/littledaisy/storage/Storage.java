@@ -99,16 +99,18 @@ public class Storage {
             switch (fields[0]) {
                 case "T":
                     requireFieldCount(fields, 3);
-                    task = new Todo(unescapeField(fields[2]));
+                    task = new Todo(requireNotBlank(unescapeField(fields[2])));
                     break;
                 case "D":
                     requireFieldCount(fields, 4);
-                    task = Deadline.fromInput(unescapeField(fields[2]), fields[3]);
+                    task = Deadline.fromInput(requireNotBlank(unescapeField(fields[2])),
+                            requireNotBlank(fields[3]));
                     break;
                 case "E":
                     requireFieldCount(fields, 5);
-                    task = new Event(unescapeField(fields[2]),
-                            unescapeField(fields[3]), unescapeField(fields[4]));
+                    task = new Event(requireNotBlank(unescapeField(fields[2])),
+                            requireNotBlank(unescapeField(fields[3])),
+                            requireNotBlank(unescapeField(fields[4])));
                     break;
                 default:
                     throw new IllegalArgumentException();
@@ -119,10 +121,18 @@ public class Storage {
                 throw new IllegalArgumentException();
             }
             return task;
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | LittleDaisyException e) {
             throw new LittleDaisyException(
                     "Saved task data is invalid at line " + lineNumber + ".");
         }
+    }
+
+    /** Rejects required stored fields that are empty or contain only spaces. */
+    private String requireNotBlank(String field) {
+        if (field.isBlank()) {
+            throw new IllegalArgumentException();
+        }
+        return field;
     }
 
     /** Ensures a stored record has exactly the required number of fields. */

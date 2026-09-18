@@ -68,6 +68,11 @@ public class TaskList {
         return tasks.size();
     }
 
+    /** Returns whether an equivalent task is already in the list. */
+    public boolean containsDuplicate(Task candidate) {
+        return tasks.stream().anyMatch(task -> task.hasSameDetails(candidate));
+    }
+
     /**
      * Returns tasks whose descriptions contain the keyword, ignoring case.
      *

@@ -71,4 +71,13 @@ class StorageTest {
 
         assertThrows(LittleDaisyException.class, storage::load);
     }
+
+    @Test
+    void load_blankRequiredField_exceptionThrown() throws IOException {
+        Path file = tempDirectory.resolve("tasks.txt");
+        Files.writeString(file, "E\t0\tmeeting\t \t4pm", StandardCharsets.UTF_8);
+        Storage storage = new Storage(file);
+
+        assertThrows(LittleDaisyException.class, storage::load);
+    }
 }

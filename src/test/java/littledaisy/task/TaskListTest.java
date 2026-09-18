@@ -35,4 +35,12 @@ class TaskListTest {
 
         assertEquals(0, tasks.find("report").size());
     }
+
+    @Test
+    void containsDuplicate_sameDetailsIgnoringCase_duplicateFound() {
+        TaskList tasks = new TaskList(List.of(new Todo("Read book")));
+
+        assertEquals(true, tasks.containsDuplicate(new Todo("read BOOK")));
+        assertEquals(false, tasks.containsDuplicate(new Todo("return book")));
+    }
 }

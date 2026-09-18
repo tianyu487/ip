@@ -28,13 +28,13 @@ class ParserTest {
     void parseTaskIndex_validTaskNumber_zeroBasedIndexReturned()
             throws LittleDaisyException {
         assertEquals(1, Parser.parseTaskIndex("2", 3));
-        assertEquals(1, Parser.parseTaskIndex("2 ignored", 3));
     }
 
     @Test
     void parseTaskIndex_missingNonNumericOrOutOfRange_exceptionThrown() {
         assertThrows(LittleDaisyException.class, () -> Parser.parseTaskIndex("", 3));
         assertThrows(LittleDaisyException.class, () -> Parser.parseTaskIndex("two", 3));
+        assertThrows(LittleDaisyException.class, () -> Parser.parseTaskIndex("2 extra", 3));
         assertThrows(LittleDaisyException.class, () -> Parser.parseTaskIndex("0", 3));
         assertThrows(LittleDaisyException.class, () -> Parser.parseTaskIndex("4", 3));
     }
@@ -62,6 +62,16 @@ class ParserTest {
                 () -> Parser.parseDeadline("submit report"));
         assertThrows(LittleDaisyException.class,
                 () -> Parser.parseDeadline("submit report /by 2026-02-30"));
+        assertThrows(LittleDaisyException.class,
+                () -> Parser.parseDeadline("submit /by 2026-09-01 /by 2026-09-02"));
+    }
+
+    @Test
+    void parseDeadline_multipleSpaces_validDeadlineReturned() throws LittleDaisyException {
+        Deadline deadline = Parser.parseDeadline("submit report   /by   2026-09-01");
+
+        assertEquals("submit report", deadline.getDescription());
+        assertEquals("2026-09-01", deadline.getBy().toString());
     }
 
     @Test
@@ -79,5 +89,7 @@ class ParserTest {
                 () -> Parser.parseEvent("meeting /to 4pm"));
         assertThrows(LittleDaisyException.class,
                 () -> Parser.parseEvent("meeting /from 2pm"));
+        assertThrows(LittleDaisyException.class,
+                () -> Parser.parseEvent("meeting /from 2pm /to 4pm /to 5pm"));
     }
 }

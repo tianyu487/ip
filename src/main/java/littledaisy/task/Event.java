@@ -42,6 +42,16 @@ public class Event extends Task {
         return to;
     }
 
+    /** Returns whether another event has the same description and time range. */
+    @Override
+    public boolean hasSameDetails(Task other) {
+        if (!super.hasSameDetails(other)) {
+            return false;
+        }
+        Event event = (Event) other;
+        return from.equalsIgnoreCase(event.from) && to.equalsIgnoreCase(event.to);
+    }
+
     /**
      * Returns this event with its type icon and time span, e.g.
      * {@code [E][ ] project meeting (from: Mon 2pm to: 4pm)}.

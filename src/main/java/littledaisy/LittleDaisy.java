@@ -172,6 +172,9 @@ public class LittleDaisy {
 
     /** Adds one task, persists the new list, and returns the change response. */
     private String addAndSave(Task task) throws LittleDaisyException {
+        if (tasks.containsDuplicate(task)) {
+            throw new LittleDaisyException("That task is already in your list.");
+        }
         tasks.add(task);
         storage.save(tasks);
         return ui.getAddedMessage(task, tasks.size());
