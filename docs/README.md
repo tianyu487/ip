@@ -1,8 +1,11 @@
 # littleDaisy User Guide
 
-// Product screenshot goes here
+![littleDaisy GUI](Ui.png)
 
-// Product intro goes here
+littleDaisy is a cheerful desktop task manager for people who prefer fast,
+keyboard-friendly commands. It remembers your todos, deadlines, and events
+between sessions. Type a command into the box at the bottom and press **Enter**
+or click **Send**.
 
 ## Getting help
 
@@ -26,25 +29,66 @@ Here are the commands I understand:
   bye
 ```
 
-## Adding deadlines
+## Adding tasks
 
-// Describe the action and its outcome.
+Add a task using one of these commands:
 
-// Give examples of usage
+- `todo <description>` for a task without a date
+- `deadline <description> /by <yyyy-MM-dd>` for a dated task
+- `event <description> /from <start> /to <end>` for an event
 
-Example: `keyword (optional arguments)`
+Examples:
 
-// A description of the expected outcome goes here
-
+```text
+todo read chapter 6
+deadline submit report /by 2026-09-25
+event project meeting /from Friday 2pm /to Friday 4pm
 ```
-expected output
+
+Dates must be real calendar dates in `yyyy-MM-dd` format. littleDaisy rejects
+empty descriptions, missing command options, invalid dates, repeated options,
+and duplicate tasks without changing your list.
+
+## Viewing and finding tasks
+
+Use `list` to show every task, or `find <keyword>` to show tasks whose
+descriptions contain the keyword. Search is not case-sensitive.
+
+```text
+list
+find report
 ```
 
-## Feature ABC
+The symbols `[T]`, `[D]`, and `[E]` identify todos, deadlines, and events.
+`[X]` means a task is complete; `[ ]` means it is not complete.
 
-// Feature details
+## Updating tasks
 
+The task number is the number shown by `list`.
 
-## Feature XYZ
+- `mark <task number>` marks a task as complete.
+- `unmark <task number>` marks a task as incomplete.
+- `delete <task number>` permanently removes a task.
 
-// Feature details
+For example:
+
+```text
+mark 2
+unmark 2
+delete 1
+```
+
+littleDaisy reports a clear error if the number is missing, is not numeric, or
+does not identify a task in the current list.
+
+## Saving data
+
+Tasks are saved automatically after every change in `data/littleDaisy.txt`.
+If the file does not exist on first launch, littleDaisy starts with an empty
+list and creates it when you add a task. Do not edit the data file while the
+application is running.
+
+## Exiting
+
+Enter `bye` to see littleDaisy's goodbye message. You can then close the
+window. All earlier changes have already been saved.
